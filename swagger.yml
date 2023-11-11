@@ -4,116 +4,36 @@ info:
   description: This is the API for the Phrase Recorder App.
   termsOfService: http://swagger.io/terms/
   contact:
-    email: gdavidson1107@gmail.com
+    email: gigi.r.davidson@gmail.com
   license:
     name: Apache 2.0
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
-  - url: https://indigenous-test.io/v1
+  - url: http://localhost:8080/v1
 tags:
-  - name: phrase
-    description: Operations with phrases
   - name: user
     description: Operations with users
-  - name: userPhrase
-    description: Operations with UserPhrase objects.
-  - name: phraseSet
-    description: Operations with PhraseSet objects
   - name: userPhraseComment
     description: Operations with UserPhraseComment objects
-  - name: userPhraseCount
-    description: Operations with userPhraseCount objects
   - name: userPhraseWithAudio
     description: Operations with userPhraseWithAudio objects
+  - name: userPhraseWithAudioContent
+    description: Operations with userPhraseWithAudioContent objects
+  - name: phraseSubset
+    description: Operations with phraseSubset objects
+  - name: userPin
+    description: Operations with userPin objects
 paths:
-  ## PHRASE
-  /phrase:
-    post:
-      tags:
-        - phrase
-      summary: Add a new phrase to the Database
-      operationId: addPhrase
-      requestBody:
-        description: Phrase object that needs to be added to the Database
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/Phrase'
-        required: true
+  /ping:
+    get:
       responses:
         "200":
           description: Successful operation
           content:
-            application/json:
+            text/plain:
               schema:
-                $ref: '#/components/schemas/Phrase'
-        "405":
-          description: Invalid input
-          content: {}
-      x-codegen-request-body-name: phrase
-      x-openapi-router-controller: swagger_server.controllers.PhraseController
-  /phrase/{phraseId}:
-    post:
-      tags:
-        - phrase
-      summary: Gets a phrase with a given phraseId from the Database.
-      operationId: getPhraseById
-      parameters:
-        - name: phraseId
-          in: path
-          description: The phraseId of the phrase you want to fetch from the Database
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Phrase'
-        "405":
-          description: Invalid input
-          content: {}
-        "404":
-          description: Not found
-          content: {}
-      x-codegen-request-body-name: phrase
-      x-openapi-router-controller: swagger_server.controllers.PhraseController
-  /phrase/batchGet:
-    post:
-      tags:
-        - phrase
-      summary: Gets Phrase objects in a list from a provided list of phraseIds from the Database.
-      operationId: getAllPhrasesByIds
-      requestBody:
-        description: List of phraseIds
-        content:
-          application/json:
-            schema:
-              type: array
-              items:
-                type: integer
-                format: int64
-      responses:
-        "200":
-          description: successful operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Phrase'
-        "405":
-          description: Invalid input
-          content: { }
-        "404":
-          description: Not found
-          content: { }
-      x-codegen-request-body-name: phrase
-      x-openapi-router-controller: swagger_server.controllers.PhraseController
+                type: string
 
   ## USER
   /user:
@@ -127,15 +47,15 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: "#/components/schemas/User"
         required: true
       responses:
         "200":
           description: Successful operation
-          content: {}
+          content: { }
         "404":
           description: User not found
-          content: {}
+          content: { }
       x-codegen-request-body-name: user
       x-openapi-router-controller: swagger_server.controllers.UserController
     post:
@@ -148,7 +68,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/User'
+              $ref: "#/components/schemas/User"
         required: true
       responses:
         "200":
@@ -156,49 +76,56 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
         "405":
           description: Invalid input
-          content: {}
+          content: { }
       x-codegen-request-body-name: user
       x-openapi-router-controller: swagger_server.controllers.UserController
-  /user/{userId}:
-    delete:
+
+    get:
       tags:
         - user
-      summary: Delete an existing user
-      operationId: delete_user
+      summary: gets a user by first and last name
       parameters:
-        - name: userId
-          in: path
-          description: The userId of the user you want to delete from the Database
+        - name: first
+          in: query
+          description: First name
           required: true
           style: simple
           explode: false
           schema:
             type: integer
-            format: int64
+        - name: last
+          in: query
+          description: last name
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
       responses:
         "200":
           description: Successful operation
-          content: {}
-        "400":
-          description: Invalid ID supplied
-          content: {}
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
         "404":
           description: User not found
-          content: {}
-        "405":
-          description: Validation exception
-          content: {}
-      x-codegen-request-body-name: userId
+          content: { }
+      x-codegen-request-body-name: user
       x-openapi-router-controller: swagger_server.controllers.UserController
 
-    post:
+
+
+
+  /user/{userId}:
+    get:
       tags:
         - user
       summary: Gets user with given userId
-      operationId: getUser
+      operationId: getUserById
       parameters:
         - name: userId
           in: path
@@ -208,57 +135,29 @@ paths:
           explode: false
           schema:
             type: integer
-            format: int64
       responses:
         "200":
           description: successful operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: "#/components/schemas/User"
       x-codegen-request-body-name: user
       x-openapi-router-controller: swagger_server.controllers.UserController
 
-
-  ### USER PHRASE
-  /userPhrase:
-    post:
-      tags:
-        - userPhrase
-      summary: Saves a userPhrase to db
-      operationId: addUserPhrase
-      requestBody:
-        description: UserPhrase object
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserPhrase'
-        required: true
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPhrase'
-        "405":
-          description: Validation exception
-          content: {}
-      x-codegen-request-body-name: userPhrase
-      x-openapi-router-controller: swagger_server.controllers.UserPhraseController
-
-  /file:
+  #AUDIO FILE ACTIONS
+  /audioFile:
     post:
       tags:
         - userPhraseWithAudio
       summary: Saves a voice recording to bucket for a particular user
-      operationId: saveAudioFileToBucket
+      operationId: saveAudioContentToBucket
       requestBody:
-        description: UserPhraseWithAudioFile object
+        description: userPhraseWithAudioContent object
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPhraseWithAudioFile'
+              $ref: '#/components/schemas/UserPhraseWithAudioContent'
         required: true
       responses:
         "200":
@@ -272,150 +171,41 @@ paths:
           content: { }
       x-codegen-request-body-name: userPhrase
       x-openapi-router-controller: swagger_server.controllers.BucketStorageController
-  /file/{keypath}:
-    post:
+
+    get:
       tags:
-        - userPhraseWithAudio
+        - userPhraseWithAudioContent
       summary: Gets file from bucket with given keypath
-      operationId: getFileFromBucket
+      operationId: getAudioFromBucket
       parameters:
-        - name: keypath
-          in: path
-          description: The path of the file you want to fetch from the bucket.
-          required: true
-          style: simple
-          explode: false
+        - in: query
+          name: phraseId and Example path object
           schema:
-            type: string
+            $ref: '#/components/schemas/PhraseIdAndExamplePath'
+
+          description: The phraseId and example path associated with the audio
+          required: true
       responses:
         "200":
-          description: successful operation
+          description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/User'
+                $ref: '#/components/schemas/PhraseIdAndAudioContents'
       x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
-
-
-  /userPhrase/{userPhraseId}:
-    post:
+  /audioFiles:
+    get:
       tags:
-        - userPhrase
-      summary: Get a userPhrase by ID from the db
-      operationId: getUserPhraseById
+        - userPhraseWithAudioContent
+      summary: Gets files from bucket with the given keypaths and phraseIds
+      operationId: getFilesFromBucket
       parameters:
-        - name: userPhraseId
-          in: path
-          description: The userPhraseID of the userPhrase you want to fetch
-          required: true
-          style: simple
-          explode: false
+        - in: query
+          name: A Phrase list for which you want the example audio
           schema:
-            type: integer
-            format: int64
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserPhrase'
-        "400":
-          description: Invalid ID supplied
-          content: {}
-        "404":
-          description: UserPhrase not found
-          content: {}
-        "405":
-          description: Validation exception
-          content: {}
-      x-codegen-request-body-name: userPhrase
-      x-openapi-router-controller: swagger_server.controllers.UserPhraseController
 
-
-  ## Phrase Set
-  /phraseSet:
-    post:
-      tags:
-        - phraseSet
-      summary: Add a new phraseSet to the Database
-      operationId: addPhraseSet
-      requestBody:
-        description: PhraseSet object that needs to be added to the Database
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PhraseSet'
-        required: true
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PhraseSet'
-        "400":
-          description: Invalid ID supplied
-          content: {}
-        "404":
-          description: PhraseSet not found
-          content: {}
-        "405":
-          description: Validation exception
-          content: {}
-      x-codegen-request-body-name: phraseSet
-      x-openapi-router-controller: swagger_server.controllers.PhraseSetController
-  /phraseSet/{phraseSetId}:
-    post:
-      tags:
-        - phraseSet
-      summary: Get a phraseSet by Id
-      operationId: getPhraseSet
-      parameters:
-        - name: phraseSetId
-          in: path
-          description: The phraseSet Id you want to get
           required: true
-          style: simple
-          explode: false
-          schema:
-            type: integer
-            format: int64
-      responses:
-        "200":
-          description: Successful Operation
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/PhraseSet'
-        "400":
-          description: Invalid ID supplied
-          content: {}
-        "404":
-          description: PhraseSet not found
-          content: {}
-        "405":
-          description: Validation exception
-          content: {}
-      x-codegen-request-body-name: phraseSet
-      x-openapi-router-controller: swagger_server.controllers.PhraseSetController
-
-  ##UserPhraseCount
-
-  /phraseIds:
-    post:
-      tags:
-        - userPhraseCount
-      summary: get All Remaining PhraseIds For A User And PhraseSet
-      operationId: getAllRemainingPhraseIdsForAUserAndPhraseSet
-      requestBody:
-        description: PhraseRequest object
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/PhraseRequest'
-        required: true
       responses:
         "200":
           description: Successful Operation
@@ -424,22 +214,83 @@ paths:
               schema:
                 type: array
                 items:
-                  type: integer
-                  format: int64
+                  $ref: '#/components/schemas/PhraseIdAndAudioContents'
+      x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
 
+  ## Phrase Subset
+  /phraseSubset/{phraseSubsetId}:
+    get:
+      tags:
+        - phraseSubset
+      summary: This is the API that will fetch the next phrase group for the client, where the client must provide the phraseGroupID it wants to fetch. A response shall be a PhraseSubset response, which is an id, a description, and a list of Phrases.
+      operationId: getPhraseSubset
+      parameters:
+        - name: phraseSubsetId
+          in: path
+          description: Numeric ID of the phrase Group to get. Client must track this number so as to fetch the correct one.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhraseSubset"
         "400":
           description: Invalid ID supplied
           content: { }
         "404":
-          description: Not found
+          description: PhraseSubset not found
           content: { }
         "405":
           description: Validation exception
           content: { }
-      x-codegen-request-body-name: phraseRequest
-      x-openapi-router-controller: swagger_server.controllers.UserPhraseCountController
+      x-codegen-request-body-name: phraseSubset
+      x-openapi-router-controller: swagger_server.controllers.PhraseSubsetController
 
+
+  /phraseSubsets:
+    get:
+      tags:
+        - phraseSubset
+      summary: This method fetches all the phraseGroups in a paged manner. By default, it fetches the first page and sets a page size of five items.
+      operationId: getAllPhraseSubsets
+      parameters:
+        - name: pageNumber
+          in: query
+          description: The page number you wish fetched. E.g., to fetch the first page, specify 0. The default is 0.
+          required: true
+          schema:
+            type: integer
+        - name: size
+          in: query
+          description: The number of items on each page. The default is 5.
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/PhraseSubsetsPagedResponse"
+        "400":
+          description: Invalid parameter values supplied
+          content: { }
+        "405":
+          description: Validation exception
+          content: { }
+        "500":
+          description: Internal server error
+          content: { }
+    x-codegen-request-body-name: PhraseSubset
+    x-openapi-router-controller: swagger_server.controllers.PhraseSubsetController
 
 
   ## USER PHRASE COMMENT
@@ -454,7 +305,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/UserPhraseComment'
+              $ref: "#/components/schemas/UserPhraseComment"
         required: true
       responses:
         "200":
@@ -462,48 +313,125 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserPhraseComment'
+                $ref: "#/components/schemas/UserPhraseComment"
         "405":
           description: Validation exception
-          content: {}
+          content: { }
       x-codegen-request-body-name: UserPhraseComment
-      x-openapi-router-controller: swagger_server.controllers.UserPhraseController
+      x-openapi-router-controller: swagger_server.controllers.UserPhraseCommentController
 
-  /userPhraseComment/{userPhraseCommentId}:
-
+  ## USER PIN
+  /user/pin:
     post:
       tags:
-        - userPhraseComment
-      summary: Get a UserPhraseComment by Id
-      operationId: getUserPhraseComment
-      parameters:
-        - name: userPhraseCommentId
-          in: path
-          description: The Id of UserPhraseComment you want to get
-          required: true
-          style: simple
-          explode: false
-          schema:
-            type: integer
-            format: int64
+        - userPin
+      summary: add a new user pin to the database, associated with a user.
+      operationId: addUserPin
+      requestBody:
+        description: UserPin object that needs to be added to the Database
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserPin"
+        required: true
       responses:
         "200":
           description: Successful Operation
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserPhraseComment'
+                $ref: "#/components/schemas/UserPin"
         "400":
-          description: Invalid ID supplied
-          content: {}
-        "404":
-          description: UserPhraseComment not found
-          content: {}
-        "405":
           description: Validation exception
-          content: {}
-      x-codegen-request-body-name: UserPhraseComment
-      x-openapi-router-controller: swagger_server.controllers.UserPhraseController
+          content: { }
+      x-codegen-request-body-name: UserPin
+      x-openapi-router-controller: swagger_server.controllers.UserPinController
+
+  /user/{userId}/pin:
+    get:
+      tags:
+        - userPin
+      summary: Fetches a userpin from the database given a userid
+      operationId: getPinByUserId
+      parameters:
+        - name: userId
+          in: path
+          description: The user Id of the pin you want to get.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPin"
+        "404":
+          description: Not found
+          content: { }
+        x-codegen-request-body-name: UserPin
+        x-openapi-router-controller: swagger_server.controllers.UserPinController
+
+    put:
+      tags:
+        - userPin
+      summary: Updates a user's pin
+      operationId: updateUserPin
+      requestBody:
+        description: The new pin
+        content:
+          application/json:
+            schema:
+              type: integer
+      parameters:
+        - name: userId
+          in: path
+          description: The user Id of the pin you want to get.
+          required: true
+          style: simple
+          explode: false
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: Successful Operation
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/UserPin"
+        "404":
+          description: Not found
+          content: { }
+        x-codegen-request-body-name: UserPin
+        x-openapi-router-controller: swagger_server.controllers.UserPinController
+
+  /user/pin/validate:
+    get:
+      tags:
+        - userPin
+      summary: Validates a pin against a given userid
+      operationId: validateUserPin
+      parameters:
+        - in: query
+          name: userPin
+          schema:
+            $ref: '#/components/schemas/UserPin'
+          description: The userId and pin combo you want to validate
+          required: true
+
+      responses:
+        "200":
+          description: Successful Operation - Authorized
+          content: { }
+        "401":
+          description: Unauthorized- this is the response if the validation fails. Client should respond accordingly.
+          content: { }
+        x-codegen-request-body-name: UserPin
+        x-openapi-router-controller: swagger_server.controllers.UserPinController
+
 
 
 components:
@@ -513,17 +441,26 @@ components:
       properties:
         id:
           type: integer
-          format: int64
+          nullable: false
         phraseSetId:
           type: integer
-          format: int64
+          nullable: false
         original:
           type: string
+          nullable: false
         translation:
           type: string
+          nullable: true
         exampleRecordingPath:
           type: string
           format: uri
+          nullable: true
+        enabled:
+          type: boolean
+          nullable: true
+        languageId:
+          type: integer
+          nullable: false
       xml:
         name: Phrase
     User:
@@ -531,16 +468,71 @@ components:
       properties:
         id:
           type: integer
-          format: int64
+          nullable: false
+        languageId:
+          type: integer
+          nullable: false
         firstName:
           type: string
+          nullable: false
         lastName:
           type: string
+          nullable: false
         email:
           type: string
           format: email
+          nullable: false
+        phraseSubsetIndex:
+          type: integer
+          nullable: true
         project:
           type: string
+          nullable: true
+        age:
+          type: integer
+          nullable: true
+        gender:
+          type: string
+          enum: [ MALE, FEMALE, OTHER, DECLINE ]
+          nullable: true
+        geographicLocation:
+          type: string
+          nullable: true
+        firstLanguage:
+          type: string
+          nullable: true
+        fluency:
+          type: string
+          enum: [ FLUENT, WORKING_FLUENCY, LIMITED_FLUENCY, NONE ]
+          nullable: true
+        education:
+          type: string
+          enum:
+            [
+              LESS_THAN_HIGH_SCHOOL,
+              HIGH_SCHOOL,
+              VOCATIONAL,
+              SOME_COLLEGE,
+              COLLEGE,
+              POSTGRADUATE,
+            ]
+          nullable: true
+        priorMinCourseTraining:
+          type: string
+          enum: [ COMPLETED, WORKING, NONE ]
+          nullable: true
+        speechDisorders:
+          type: boolean
+          nullable: true
+        userType:
+          type: string
+          enum:
+            [
+              SUPER,
+              REGULAR,
+              DEPENDENT
+            ]
+          nullable: true
       xml:
         name: User
     UserPhrase:
@@ -548,88 +540,149 @@ components:
       properties:
         id:
           type: integer
-          format: int64
+          nullable: false
         phraseId:
           type: integer
-          format: int64
+          nullable: false
         userId:
           type: integer
-          format: int64
-        dateTime:
+          nullable: false
+        fileHash:
+          type: string
+          nullable: true
+        fileIsValid:
+          type: boolean
+        recordedTime:
           type: string
           format: date-time
-        filepath:
+          nullable: false
+        uploadTime:
           type: string
-          format:  binary
-        ## mp4, mp3, ogg vorbis, wav
-        ## hex encoded binary string (b64)
-        ## add param to tell what kind of file it is, so like (binaryString, wav)
+          format: date-time
+          nullable: false
+        filePath:
+          type: string
+          format: binary
+          nullable: true
       xml:
         name: UserPhrase
-    PhraseSet:
+
+    PhraseSubset:
       type: object
       properties:
         id:
           type: integer
-          format: int64
-        phraseSetName:
+          nullable: false
+        description:
           type: string
-        startDate:
-          type: string
-          format: date-time
-        endDate:
-          type: string
-          format: date-time
+          nullable: false
+        phraseList:
+          type: array
+          nullable: false
+          items:
+            $ref: "#/components/schemas/Phrase"
       xml:
-        name: PhraseSet
-
+        name: PhraseSubset
     UserPhraseComment:
       type: object
       properties:
         id:
           type: integer
-          format: int64
+          nullable: false
         phraseId:
           type: integer
-          format: int64
+          nullable: true
         comment:
           type: string
+          nullable: true
         dateTime:
           type: string
           format: date-time
+          nullable: false
         userId:
           type: integer
-          format: int64
+          nullable: true
       xml:
         name: UserPhraseComment
-    UserPhraseWithAudioFile:
+
+    UserPhraseWithAudioContent:
       type: object
       properties:
         userPhrase:
-          $ref: '#/components/schemas/UserPhrase'
+          $ref: "#/components/schemas/UserPhrase"
+          nullable: true
         file:
           type: string
           format: byte
+          nullable: true
       xml:
-        name: UserPhraseWithAudioFile
-    PhraseRequest:
+        name: UserPhraseWithAudioContent
+
+    PhraseIdAndAudioContents:
       type: object
       properties:
+        phraseId:
+          type: integer
+          nullable: true
+        audioContents:
+          type: string
+          format: byte
+          nullable: true
+      xml:
+        name: PhraseIdAndAudioContents
+
+    PhraseIdAndExamplePath:
+      type: object
+      properties:
+        phraseId:
+          type: integer
+          nullable: false
+        exampleRecordingPath:
+          type: string
+          nullable: false
+      xml:
+        name: PhraseIdAndExamplePath
+
+    PhraseIdAndExamplePathList:
+      type: object
+      properties:
+        list:
+          type: array
+          items:
+            $ref: "#/components/schemas/PhraseIdAndExamplePath"
+          nullable: false
+      xml:
+        name: PhraseIdAndExamplePathList
+
+    UserPin:
+      type: object
+      properties:
+        id:
+          type: integer
+          nullable: false
         userId:
           type: integer
-          format: int64
-        phraseSetId:
+          nullable: false
+        pin:
           type: integer
-          format: int64
+          nullable: false
       xml:
-        name: PhraseRequest
-
-
-
-
-
-
-
-
+        name: UserPin
+    PhraseSubsetsPagedResponse:
+      type: object
+      properties:
+        totalPages:
+          type: integer
+          nullable: false
+        totalElements:
+          type: integer
+          nullable: false
+        content:
+          type: array
+          nullable: false
+          items:
+            $ref: "#/components/schemas/PhraseSubset"
+      xml:
+        name: PhraseSubsetsPagedResponse
 
 
