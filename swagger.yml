@@ -20,8 +20,8 @@ tags:
     description: Operations with the buckets
   - name: phraseSubset
     description: Operations with phraseSubset objects
-  - name: userPin
-    description: Operations with userPin objects
+  - name: userSecurity
+    description: Operations with userSecurity objects
 paths:
   /ping:
     get:
@@ -322,19 +322,19 @@ paths:
       x-codegen-request-body-name: UserPhraseComment
       x-openapi-router-controller: swagger_server.controllers.UserPhraseCommentController
 
-  ## USER PIN
+  ## USER SECURITY
   /user/pin:
     post:
       tags:
-        - userPin
-      summary: add a new user pin to the database, associated with a user.
-      operationId: addUserPin
+        - userSecurity
+      summary: add a new user pin and other security info to the database, associated with a user.
+      operationId: addUserSecurity
       requestBody:
-        description: UserPin object that needs to be added to the Database
+        description: UserSecurity object that needs to be added to the Database
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/UserPin"
+              $ref: "#/components/schemas/UserSecurity"
         required: true
       responses:
         "200":
@@ -342,19 +342,19 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserPin"
+                $ref: "#/components/schemas/UserSecurity"
         "400":
           description: Validation exception
           content: { }
-      x-codegen-request-body-name: UserPin
-      x-openapi-router-controller: swagger_server.controllers.UserPinController
+      x-codegen-request-body-name: UserSecurity
+      x-openapi-router-controller: swagger_server.controllers.UserSecurityController
 
-  /user/{userId}/pin:
+  /user/{userId}/security:
     get:
       tags:
-        - userPin
-      summary: Fetches a userpin from the database given a userid
-      operationId: getPinByUserId
+        - userSecurity
+      summary: Fetches UserSecurity from the database given a userid
+      operationId: getUserSecurityByUserId
       parameters:
         - name: userId
           in: path
@@ -370,16 +370,16 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserPin"
+                $ref: "#/components/schemas/UserSecurity"
         "404":
           description: Not found
           content: { }
-        x-codegen-request-body-name: UserPin
-        x-openapi-router-controller: swagger_server.controllers.UserPinController
-
+        x-codegen-request-body-name: UserSecurity
+        x-openapi-router-controller: swagger_server.controllers.UserSecurityController
+  /user/{userId}/pin:
     put:
       tags:
-        - userPin
+        - userSecurity
       summary: Updates a user's pin
       operationId: updateUserPin
       requestBody:
@@ -403,27 +403,32 @@ paths:
           content:
             application/json:
               schema:
-                $ref: "#/components/schemas/UserPin"
+                $ref: "#/components/schemas/UserSecurity"
         "404":
           description: Not found
           content: { }
-        x-codegen-request-body-name: UserPin
-        x-openapi-router-controller: swagger_server.controllers.UserPinController
+        x-codegen-request-body-name: UserSecurity
+        x-openapi-router-controller: swagger_server.controllers.UserSecurityController
 
-  /user/pin/validate:
+  /user/{userId}/pin/validate:
     get:
       tags:
-        - userPin
+        - userSecurity
       summary: Validates a pin against a given userid
       operationId: validateUserPin
       parameters:
         - in: query
           name: userPin
           schema:
-            $ref: '#/components/schemas/UserPin'
-          description: The userId and pin combo you want to validate
+            type: string
+          description: pin you want to validate
           required: true
-
+        - in: path
+          name: userId
+          schema:
+            type: string
+          description: The userId of the pin you want to validate
+          required: true
       responses:
         "200":
           description: Successful Operation - Authorized
@@ -431,8 +436,8 @@ paths:
         "401":
           description: Unauthorized- this is the response if the validation fails. Client should respond accordingly.
           content: { }
-        x-codegen-request-body-name: UserPin
-        x-openapi-router-controller: swagger_server.controllers.UserPinController
+        x-codegen-request-body-name: UserSecurity
+        x-openapi-router-controller: swagger_server.controllers.UserSecurityController
 
 
 
@@ -644,7 +649,7 @@ components:
       xml:
         name: PhraseIdAndExamplePath
 
-    UserPin:
+    UserSecurity:
       type: object
       properties:
         id:
@@ -656,8 +661,12 @@ components:
         pin:
           type: integer
           nullable: false
+        isAdmin:
+          type: boolean
+        email:
+          type: string
       xml:
-        name: UserPin
+        name: UserSecurity
     PhraseSubsetsPagedResponse:
       type: object
       properties:
