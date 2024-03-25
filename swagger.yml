@@ -10,31 +10,39 @@ info:
     url: http://www.apache.org/licenses/LICENSE-2.0.html
   version: 1.0.0
 servers:
+  - url: https://{domain}/{basePath}
+    description: Servers
+    variables:
+      domain:
+        enum:
+          - "raiv-beta.first-languages-beta.com"
+        default: 'raiv-beta.first-languages-beta.com'
+      basePath:
+        default: v1
   - url: http://localhost:8080/v1
+    description: local dev
+security:
+  - bearerAuth: [ ]
+
 tags:
   - name: user
     description: Operations with users
   - name: userPhraseComment
     description: Operations with UserPhraseComment objects
-  - name: bucket
-    description: Operations with the buckets
+  - name: audio
+    description: Operations with buckets
   - name: phraseSubset
     description: Operations with phraseSubset objects
   - name: userSecurity
     description: Operations with userSecurity objects
 paths:
-  /ping:
+  /service/status:
     get:
-      tags:
-        - bucket
-      summary: Healthcheck endpoint for the service to determine if it's up and running and broadly reachable.
+      summary: Public Healthcheck endpoint for the service to determine if it's up and running and broadly reachable.
       responses:
         "200":
           description: Successful operation
-          content:
-            text/plain:
-              schema:
-                type: string
+          content: { }
     x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
 
@@ -89,22 +97,16 @@ paths:
     get:
       tags:
         - user
-      summary: gets a user by first and last name
+      operationId: getUserByEmail
+      summary: gets a user by their email
       parameters:
-        - name: first
+        - name: email
           in: query
-          description: First name
+          description: email
           required: true
           explode: false
           schema:
-            type: integer
-        - name: last
-          in: query
-          description: last name
-          required: true
-          explode: false
-          schema:
-            type: integer
+            type: string
       responses:
         "200":
           description: Successful operation
@@ -150,73 +152,122 @@ paths:
   /audioFile:
     post:
       tags:
-        - bucket
-      summary: Saves a voice recording to bucket for a particular user
+        - audio
+      summary: Saves a WAV file to the S3 bucket, and saves the metadata and reference to the file in the database.
       operationId: saveAudioContentToBucket
       requestBody:
-        description: userPhraseWithAudioContent object
         content:
-          application/json:
+          multipart/form-data:
             schema:
-              $ref: '#/components/schemas/UserPhraseWithAudioContent'
+              type: object
+              properties:
+                file:
+                  type: string
+                  format: binary
+                  description: Audio file in WAV format
+                hash:
+                  type: string
+                  description: Hash value as a string
+              required:
+                - file
+                - hash
         required: true
       responses:
         "200":
-          description: Successful Operation
+          description: File uploaded successfully and information saved to Database
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserPhrase'
+        "400":
+          description: Bad request. Could be a corrupted or empty file.
+          content: { }
+        "409":
+          description: Conflict. An identically named recording was already saved to the database.
+          content: { }
         "405":
           description: Validation exception
           content: { }
       x-codegen-request-body-name: userPhrase
       x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
+  /audioFile/language/{languageAbbrev}/phrase/{phraseId}:
     get:
       tags:
-        - bucket
-      summary: Gets file from bucket with given keypath
+        - audio
+      summary: Gets WAV file from bucket with given phraseId
       operationId: getAudioFromBucket
       parameters:
-        - in: query
-          name: phraseId and Example path object
+        - in: path
+          name: languageAbbrev
           schema:
-            $ref: '#/components/schemas/PhraseIdAndExamplePath'
-
-          description: The phraseId and example path associated with the audio
+            type: string
+          description: The target language's abbreviation
+          required: true
+        - in: path
+          name: phraseId
+          schema:
+            type: string
+          description: The phraseId you want an example of
           required: true
       responses:
-        "200":
-          description: Successful Operation
+        '200':
+          description: Successful response, and a WAV audio file
           content:
-            application/json:
+            audio/wav:
               schema:
-                $ref: '#/components/schemas/PhraseIdAndAudioContents'
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: Attachment; filename="<filename>.wav"
+              schema:
+                type: string
+        '404':
+          description: Error, file not found.
+          content: { }
+        '400':
+          description: Bad request
+          content: { }
+
       x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
-  /audioFiles:
+  /audioFiles/language/{languageAbbrev}:
     get:
       tags:
-        - bucket
-      summary: Gets files from bucket with the given keypaths and phraseIds
+        - audio
+      summary: Gets a ZIP of wav files from bucket with the given phraseId List
       operationId: getFilesFromBucket
       parameters:
-        - in: query
-          name: A Phrase list for which you want the example audio
+        - in: path
+          name: languageAbbrev
           schema:
-            $ref: '#/components/schemas/PhraseList'
-
+            type: string
+          required: true
+        - in: query
+          name: phraseIdList
+          schema:
+            type: array
+            items:
+              type: string
+          style: form
+          explode: false
           required: true
       responses:
-        "200":
-          description: Successful Operation
+        '200':
+          description: A ZIP file containing multiple WAV audio files.
           content:
-            application/json:
+            application/zip:
               schema:
-                type: array
-                items:
-                  $ref: '#/components/schemas/PhraseIdAndAudioContents'
+                type: string
+                format: binary
+          headers:
+            Content-Disposition:
+              description: "Attachment; filename=\"phrases.zip\""
+              schema:
+                type: string
+        '400':
+          description: Error, request invalid.
       x-openapi-router-controller: swagger_server.controllers.BucketStorageController
 
 
@@ -442,6 +493,10 @@ paths:
 
 
 components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
   schemas:
     Phrase:
       type: object
@@ -531,15 +586,6 @@ components:
         speechDisorders:
           type: boolean
           nullable: true
-        userType:
-          type: string
-          enum:
-            [
-              SUPER,
-              REGULAR,
-              DEPENDENT
-            ]
-          nullable: true
       xml:
         name: User
     UserPhrase:
@@ -569,7 +615,6 @@ components:
           nullable: false
         filePath:
           type: string
-          format: binary
           nullable: true
       xml:
         name: UserPhrase
@@ -612,43 +657,6 @@ components:
       xml:
         name: UserPhraseComment
 
-    UserPhraseWithAudioContent:
-      type: object
-      properties:
-        userPhrase:
-          $ref: "#/components/schemas/UserPhrase"
-        file:
-          type: string
-          format: byte
-          nullable: true
-      xml:
-        name: UserPhraseWithAudioContent
-
-    PhraseIdAndAudioContents:
-      type: object
-      properties:
-        phraseId:
-          type: integer
-          nullable: true
-        audioContents:
-          type: string
-          format: byte
-          nullable: true
-      xml:
-        name: PhraseIdAndAudioContents
-
-    PhraseIdAndExamplePath:
-      type: object
-      properties:
-        phraseId:
-          type: integer
-          nullable: false
-        exampleRecordingPath:
-          type: string
-          nullable: false
-      xml:
-        name: PhraseIdAndExamplePath
-
     UserSecurity:
       type: object
       properties:
@@ -683,16 +691,4 @@ components:
             $ref: "#/components/schemas/PhraseSubset"
       xml:
         name: PhraseSubsetsPagedResponse
-    PhraseList:
-      type: object
-      properties:
-        list:
-          type: array
-          items:
-            $ref: "#/components/schemas/Phrase"
-          nullable: false
-      xml:
-        name: PhraseList
-
-
 
